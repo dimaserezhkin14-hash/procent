@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gifts Predictor</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0e14;
+            --card-bg: #141a24;
+            --card-border: #222c3d;
+            --accent-blue: #2AABEE;
+            --accent-green: #00E676;
+            --accent-yellow: #FFB300;
+            --text-main: #FFFFFF;
+            --text-muted: #8b9bb4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            min-height: 100vh;
+        }
+
+        .app-wrapper {
+            width: 100%;
+            max-width: 440px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .profile-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar-container {
+            width: 38px;
+            height: 38px;
+            background: #1c2636;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            overflow: hidden;
+            border: 1px solid #2d3b50;
+        }
+
+        .username {
+            font-size: 14px;
+            font-weight: 700;
+            max-width: 130px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-id {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .balance-block {
+            text-align: right;
+        }
+
+        .balance-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .balance-value {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--accent-green);
+        }
+
+        .action-buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 10px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .deposit-btn { background: var(--accent-blue); color: #fff; }
+        .withdraw-btn { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); }
+
+        .round-status-card {
+            background: linear-gradient(135deg, #151d2a 0%, #0d121a 100%);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .pulse-indicator {
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--accent-green);
+        }
+
+        .status-text {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--text-muted);
+        }
+
+        .timer-display {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            margin: 2px 0;
+        }
+
+        .pool-info-sub {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .section-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .section-title-row h2 { font-size: 15px; font-weight: 800; }
+
+        .badge {
+            background: #241c0d;
+            color: var(--accent-yellow);
+            border: 1px solid #4a3812;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .categories-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 12px;
+        }
+
+        .cat-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .cat-tag { font-size: 10px; font-weight: 800; color: var(--accent-blue); }
+        .cat-status { font-size: 10px; color: var(--accent-green); }
+
+        .cat-name {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .cat-description {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .bet-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .bet-input {
+            flex: 1;
+            background: #0b0e14;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .btn-submit-bet {
+            background: var(--accent-green);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 0 14px;
+            font-weight: 800;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 100;
+        }
+
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 360px;
+            padding: 16px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .modal-header h3 { font-size: 15px; }
+
+        .close-btn { background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; }
+
+        .option-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #0b0e14;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .option-icon { font-size: 20px; }
+        .option-title { font-size: 13px; font-weight: 700; }
+        .option-sub { font-size: 10px; color: var(--text-muted); }
+
+        .modal-input {
+            width: 100%;
+            background: #0b0e14;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 10px;
+            color: #fff;
+            font-size: 13px;
+            margin-bottom: 8px;
+            outline: none;
+        }
+
+        .btn-primary-action {
+            width: 100%;
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .admin-panel {
+            background: #191224;
+            border: 1px solid #3e2152;
+            border-radius: 14px;
+            padding: 12px;
+        }
+
+        .admin-panel h3 { font-size: 13px; color: #c47aff; margin-bottom: 8px; }
+
+        .admin-form input {
+            width: 100%;
+            background: #0b0e14;
+            border: 1px solid #3e2152;
+            border-radius: 8px;
+            padding: 8px;
+            color: #fff;
+            font-size: 12px;
+            margin-bottom: 6px;
+            outline: none;
+        }
+
+        .admin-btn {
+            width: 100%;
+            background: #981ee8;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+      <div class="app-wrapper">
+        
+        <!-- Профиль -->
+        <header class="profile-card">
+            <div class="user-block">
+                <div class="avatar-container" id="user-avatar">👤</div>
+                <div class="user-details">
+                    <div class="username" id="username">Игрок</div>
+                    <div class="user-id" id="user-id">ID: 000000</div>
+                </div>
+            </div>
+            <div class="balance-block">
+                <div class="balance-label">Баланс PT</div>
+                <div class="balance-value" id="user-balance">1,000</div>
+            </div>
+        </header>
+
+        <!-- Кнопки финансов -->
+        <div class="action-buttons-grid">
+            <button class="action-btn deposit-btn" onclick="openModal('deposit-modal')">
+                <span>➕</span> Пополнить
+            </button>
+            <button class="action-btn withdraw-btn" onclick="openModal('withdraw-modal')">
+                <span>💸</span> Вывести
+            </button>
+        </div>
+
+        <!-- Таймер -->
+        <section class="round-status-card">
+            <div class="status-header">
+                <span class="pulse-indicator"></span>
+                <span class="status-text">РАУНД 24H • КОМИССИЯ 3%</span>
+            </div>
+            <div class="timer-display" id="round-timer">23:59:59</div>
+            <div class="pool-info-sub">
+                <span>🔒 % Ставок скрыт до итогов</span>
+            </div>
+        </section>
+
+        <!-- Список категорий -->
+        <section class="categories-section">
+            <div class="section-title-row">
+                <h2>🏆 Категории дня</h2>
+                <span class="badge">Пул-бетинг</span>
+            </div>
+
+            <div id="categories-feed" class="categories-feed">
+                <div class="category-card">
+                    <div class="cat-top">
+                        <span class="cat-tag">Категория #1</span>
+                        <span class="cat-status">Активно</span>
+                    </div>
+                    <h3 class="cat-name">Рост цены гифта "Pepe" на >20%</h3>
+                    <p class="cat-description">Прогноз на суточный рост минимальной цены гифта на маркете.</p>
+                    <div class="bet-controls">
+                        <input type="number" class="bet-input" id="input-cat-1" placeholder="Мин. 50 PT" min="50">
+                        <button class="btn-submit-bet" onclick="makeBet(1)">Поставить</button>
+                    </div>
+                </div>
+
+                <div class="category-card">
+                    <div class="cat-top">
+                        <span class="cat-tag">Категория #2</span>
+                        <span class="cat-status">Активно</span>
+                    </div>
+                    <h3 class="cat-name">Общий скуп "Sparks" > 50,000 TON</h3>
+                    <p class="cat-description">Суммарный объем торгов подарками серии Sparks.</p>
+                    <div class="bet-controls">
+                        <input type="number" class="bet-input" id="input-cat-2" placeholder="Мин. 50 PT" min="50">
+                        <button class="btn-submit-bet" onclick="makeBet(2)">Поставить</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Админка -->
+        <section class="admin-panel" id="admin-panel" style="display: none;">
+            <h3>⚙️ Управление событиями</h3>
+            <div class="admin-form">
+                <input type="text" id="new-cat-title" placeholder="Название категории">
+                <input type="text" id="new-cat-desc" placeholder="Описание">
+                <button class="admin-btn" onclick="addNewCategory()">Добавить категорию</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Модалка пополнения -->
+    <div class="modal-overlay" id="deposit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Пополнение баланса</h3>
+                <button class="close-btn" onclick="closeModal('deposit-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="option-card" onclick="processDeposit('stars')">
+                    <div class="option-icon">⭐</div>
+                    <div class="option-info">
+                        <div class="option-title">Telegram Stars</div>
+                        <div class="option-sub">Оплата в 1 клик</div>
+                    </div>
+                </div>
+                <div class="option-card" onclick="processDeposit('crypto')">
+                    <div class="option-icon">💎</div>
+                    <div class="option-info">
+                        <div class="option-title">CryptoBot</div>
+                        <div class="option-sub">USDT / TON / GRAM</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка вывода -->
+    <div class="modal-overlay" id="withdraw-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Вывод средств</h3>
+                <button class="close-btn" onclick="closeModal('withdraw-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="modal-input" id="withdraw-wallet" placeholder="TON Кошелек (UQ...)">
+                <input type="number" class="modal-input" id="withdraw-amount" placeholder="Сумма PT">
+                <button class="btn-primary-action" onclick="submitWithdrawal()">Запросить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+
+        tg.expand();
+        tg.ready();
+
+        let currentUser = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initUser();
+            startTimer();
+        });
+
+        function initUser() {
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+                currentUser = tg.initDataUnsafe.user;
+                document.getElementById("username").innerText = currentUser.first_name || "Игрок";
+                document.getElementById("user-id").innerText = `ID: ${currentUser.id}`;
+                
+                if (currentUser.photo_url) {
+                    document.getElementById("user-avatar").innerHTML = `<img src="${currentUser.photo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                }
+                
+                if (currentUser.id === 615196 || currentUser.username === "dimaserezhkin14") {
+                    document.getElementById("admin-panel").style.display = "block";
+                }
+            } else {
+                document.getElementById("username").innerText = "Тестовый Юзер";
+                document.getElementById("user-id").innerText = `ID: 999999`;
+                document.getElementById("admin-panel").style.display = "block";
+            }
+        }
+
+        function startTimer() {
+            function tick() {
+                const now = new Date();
+                const end = new Date(now);
+                end.setUTCHours(23, 59, 59, 999);
+                const diff = end - now;
+                
+                if (diff <= 0) {
+                    document.getElementById("round-timer").innerText = "00:00:00";
+                    return;
+                }
+                
+                const h = Math.floor(diff / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                document.getElementById("round-timer").innerText = 
+                    `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
+            tick();
+            setInterval(tick, 1000);
+        }
+
+        function makeBet(catId) {
+            const input = document.getElementById(`input-cat-${catId}`);
+            const val = parseFloat(input.value);
+            
+            if (!val || val < 50) {
+                tg.showAlert ? tg.showAlert("Мин. ставка 50 PT") : alert("Мин. ставка 50 PT");
+                return;
+            }
+            
+            const data = { action: "make_bet", category_id: catId, amount: val };
+            if (tg.sendData) {
+                tg.sendData(JSON.stringify(data));
+            } else {
+                alert("Ставка отправлена: " + JSON.stringify(data));
+            }
+        }
+
+        function processDeposit(type) {
+            closeModal('deposit-modal');
+            const action = type === 'stars' ? 'pay_stars' : 'pay_crypto';
+            if (tg.sendData) {
+                tg.sendData(JSON.stringify({ action: action }));
+            } else {
+                alert("Запрос пополнения: " + action);
+            }
+        }
+
+        function submitWithdrawal() {
+            const wallet = document.getElementById("withdraw-wallet").value.trim();
+            const amount = parseFloat(document.getElementById("withdraw-amount").value);
+            
+            if (!wallet || wallet.length < 5) {
+                alert("Введите кошелек!");
+                return;
+            }
+            if (!amount || amount <= 0) {
+                alert("Укажите сумму!");
+                return;
+            }
+            
+            if (tg.sendData) {
+                tg.sendData(JSON.stringify({ action: "withdraw", wallet, amount }));
+            }
+            closeModal('withdraw-modal');
+            alert("Заявка создана!");
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function addNewCategory() {
+            const title = document.getElementById("new-cat-title").value.trim();
+            const desc = document.getElementById("new-cat-desc").value.trim();
+            if (!title) return;
+            
+            const feed = document.getElementById("categories-feed");
+            const id = feed.children.length + 1;
+            
+            const card = document.createElement("div");
+            card.className = "category-card";
+            card.innerHTML = `
+                <div class="cat-top">
+                    <span class="cat-tag">Категория #${id}</span>
+                    <span class="cat-status">Активно</span>
+                </div>
+                <h3 class="cat-name">${title}</h3>
+                <p class="cat-description">${desc || 'Пользовательское событие'}</p>
+                <div class="bet-controls">
+                    <input type="number" class="bet-input" id="input-cat-${id}" placeholder="Мин. 50 PT" min="50">
+                    <button class="btn-submit-bet" onclick="makeBet(${id})">Поставить</button>
+                </div>
+            `;
+            feed.appendChild(card);
+            document.getElementById("new-cat-title").value = "";
+            document.getElementById("new-cat-desc").value = "";
+        }
+    </script>
+</body>
+</html>
